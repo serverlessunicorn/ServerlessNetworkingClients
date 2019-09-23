@@ -515,19 +515,16 @@ class UDTSocket(object):
 
         def __init__(self, *args):
             super(UDTSocket.TraceInfo, self).__init__()
-            # global measurements
-            self.msTimeStamp, self.pktSentTotal, self.pktRecvTotal,
-            self.pktSndLossTotal, self.pktRcvLossTotal, self.pktRetransTotal,
-            self.pktSentACKTotal, self.pktRecvACKTotal, self.pktSentNAKTotal,
-            self.pktRecvNAKTotal, self.usSndDurationTotal,
-            # local measurements
-            self.pktSent, self.pktRecv, self.pktSndLoss, self.pktRcvLoss,
-            self.pktRetrans, self.pktSentACK, self.pktRecvACK, self.pktSentNAK,
-            self.pktRecvNAK, self.mbpsSendRate, self.mbpsRecvRate,
-            self.usSndDuration,
-            # instant measurements
-            self.usPktSndPeriod, self.pktFlowWindow, self.pktCongestionWindow,
-            self.pktFlightSize, self.msRTT, self.mbpsBandwidth,
+            self.msTimeStamp, self.pktSentTotal, self.pktRecvTotal,\
+            self.pktSndLossTotal, self.pktRcvLossTotal, self.pktRetransTotal,\
+            self.pktSentACKTotal, self.pktRecvACKTotal, self.pktSentNAKTotal,\
+            self.pktRecvNAKTotal, self.usSndDurationTotal,\
+            self.pktSent, self.pktRecv, self.pktSndLoss, self.pktRcvLoss,\
+            self.pktRetrans, self.pktSentACK, self.pktRecvACK, self.pktSentNAK,\
+            self.pktRecvNAK, self.mbpsSendRate, self.mbpsRecvRate,\
+            self.usSndDuration,\
+            self.usPktSndPeriod, self.pktFlowWindow, self.pktCongestionWindow,\
+            self.pktFlightSize, self.msRTT, self.mbpsBandwidth,\
             self.byteAvailSndBuf, self.byteAvailRcvBuf = args
 
     def __init__(self, int family=AF_INET, int type=SOCK_STREAM):
