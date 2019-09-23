@@ -1,0 +1,7 @@
+include src/udt4py.pyx
+exclude src/udt4py.cpp
+include tests/*.py
+include LICENSE
+include README
+include README.md
+include setup.py
