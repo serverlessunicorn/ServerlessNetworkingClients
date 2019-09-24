@@ -13,10 +13,6 @@ python3 -m venv venv
 . venv/bin/activate
 
 # Cython build requires the C/C++ udt4 includes in order to compile
-# TODO: Would be cleaner to point Cython to the right subdirectory but I'm not 
-#       sure how to do that yet...
-mkdir venv/include/udt
-cp ../../udt/udt4/src/udt.h venv/include/udt
 python setup.py build_ext --inplace
 
 # Minimal test to ensure build, install, and LD_LIBRARY_PATH all work
