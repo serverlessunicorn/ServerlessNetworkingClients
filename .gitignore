@@ -1,4 +1,7 @@
 layer_staging/
+udt/udt4/src/udt
+udt/udt4/app/
+jnk
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -8,6 +11,7 @@ __pycache__/
 # C extensions
 *.so
 *.o
+*.a
 
 # Distribution / packaging
 .Python
