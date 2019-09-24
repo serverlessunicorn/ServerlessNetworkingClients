@@ -51,7 +51,6 @@ setup(
         'setuptools>=18.0',
         'cython',
     ],
-    #ext_modules=[Extension('udt4py', sources=['src/udt4py.pyx'], language='c++', libraries=['udt'])],
     ext_modules=[Extension('udt4py', sources=['src/udt4py.pyx'], language='c++', include_dirs=['../../udt'], libraries=['udt'])],
     keywords=['udt', 'pyudt', 'udt4', 'udt4py'],
     classifiers=[
