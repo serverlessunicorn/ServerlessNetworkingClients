@@ -36,12 +36,7 @@ libudt4 is (c)2001 - 2011, The Board of Trustees of the University of Illinois.
 libudt4 URL:            http://udt.sourceforge.net/
 """
 
-
-from distutils.core import setup
-from distutils.extension import Extension
-from Cython.Build import cythonize
-from Cython.Distutils import build_ext
-
+from setuptools import setup,Extension
 setup(
     name="udt4py",
     description='libudt4 Python wrapper written with Cython',
@@ -51,12 +46,13 @@ setup(
     author_email="v.markovtsev@samsung.com",
     url="https://github.com/vmarkovtsev/udt4py",
     download_url='https://github.com/vmarkovtsev/udt4py',
-    ext_modules=cythonize([Extension(
-        "udt4py",
-        ["src/udt4py.pyx"],
-        language="c++",
-        libraries=["udt"],
-    )]),
+    setup_requires=[
+        #Setuptools 18.0 properly handles Cython extensions.
+        'setuptools>=18.0',
+        'cython',
+    ],
+    #ext_modules=[Extension('udt4py', sources=['src/udt4py.pyx'], language='c++', libraries=['udt'])],
+    ext_modules=[Extension('udt4py', sources=['src/udt4py.pyx'], language='c++', include_dirs=['../../udt'])],
     keywords=['udt', 'pyudt', 'udt4', 'udt4py'],
     classifiers=[
         'Development Status :: 4 - Beta',

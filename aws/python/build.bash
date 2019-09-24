@@ -3,7 +3,9 @@
 # Make sure the the ec2-prep command has been run before attempting this!
 
 # Ensure that udt4 itself has been built
-pushd ../../udt/udt4 && make && popd
+pushd ../../udt/udt4
+make
+popd
 
 # Create a Python virtual environment to build and run tests
 mkdir venv
@@ -15,7 +17,7 @@ python3 -m venv venv
 #       sure how to do that yet...
 mkdir venv/include/udt
 cp ../../udt/udt4/src/udt.h venv/include/udt
-pip install udt4py
+python setup.py build_ext --inplace
 
 # Minimal test to ensure build, install, and LD_LIBRARY_PATH all work
 export LD_LIBARY_PATH=”../../udt/udt4”

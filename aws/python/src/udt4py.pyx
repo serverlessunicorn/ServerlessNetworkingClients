@@ -1,3 +1,4 @@
+# cython: language_level=3
 """
 Copyright (c) 2014, Samsung Electronics Co.,Ltd.
 All rights reserved.
@@ -35,7 +36,6 @@ Original author:        Vadim Markovtsev <v.markovtsev@samsung.com>
 libudt4 is (c)2001 - 2011, The Board of Trustees of the University of Illinois.
 libudt4 URL:            http://udt.sourceforge.net/
 """
-
 
 import os
 
@@ -85,7 +85,7 @@ cdef extern from "arpa/inet.h":
     char *inet_ntoa(in_addr)
 
 
-cdef extern from "udt/udt.h":
+cdef extern from "udt4/src/udt.h":
     ctypedef int SYSSOCKET
     ctypedef SYSSOCKET UDPSOCKET
     ctypedef int UDTSOCKET
@@ -175,7 +175,7 @@ cdef extern from "udt/udt.h":
         void clear()
 
 
-cdef extern from "udt/udt.h" namespace "CUDTException":
+cdef extern from "udt4/src/udt.h" namespace "CUDTException":
     const int _SUCCESS "CUDTException::SUCCESS"
     const int _ECONNSETUP "CUDTException::ECONNSETUP"
     const int _ENOSERVER "CUDTException::ENOSERVER"
@@ -215,7 +215,7 @@ cdef extern from "udt/udt.h" namespace "CUDTException":
     const int _EUNKNOWN "CUDTException::EUNKNOWN"
 
 
-cdef extern from "udt/udt.h" namespace "UDT" nogil:
+cdef extern from "udt4/src/udt.h" namespace "UDT" nogil:
     ctypedef CUDTException ERRORINFO
     ctypedef UDTOpt SOCKOPT
     ctypedef CPerfMon TRACEINFO
