@@ -69,9 +69,11 @@ def lambda_handler(event, context):
     bytes_sent = sock.send(send_msg)
     assert(bytes_sent == len(send_msg))
     #  ...and expect to receive the corresponding greeting from the other side
-    recv_msg = None
-    sock.recv(recv_msg)
-    assert(recv_msg.decode("utf8") == "hello from " + other_side)
+    recv_buf = bytearray(100)
+    bytes_received = sock.recv(recv_buf)
+    recv_msg = recv_buf[0:bytes_received].decode("utf8")
+    eprint('Received: ' + recv_msg)
+    assert(recv_msg == "hello from " + other_side)
     sock.close()
     return {'statusCode': 200, 'body': 'Pairing test completed successfully'}
 
