@@ -3,6 +3,9 @@ udt/udt4/src/udt
 udt/udt4/app/
 jnk
 
+# Ignore generated YAML files that are part of the SAM workflow process
+output.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
