@@ -35,7 +35,10 @@ def lambda_handler(event, context):
     eprint('Pairing name to be used: ' + pairing_name)
 
     if (invoke_type == 'parent'):
+        other_side = 'child'
         spawn_child(pairing_name)
+    else:
+        other_side = 'parent'
 
     # Do the IP exchange with the peer; if I'm the parent, my child will be
     # doing likewise. If I'm the child, my parent did this after spawning me.
@@ -57,6 +60,18 @@ def lambda_handler(event, context):
     sock.connect(remote_address)
     handshake_time = time.time() - begin
     eprint('' + invoke_type + ': pairing test completed successfully, took ' + str(int(handshake_time*1000)) + 'ms')
+    # Verify integrity of connection. Note that the messages are short
+    # so we don't have to worry about looping over incremental send/receive results.
+    # Allow any exceptions to go uncaught for now (results will show up in CW Logs).
+    # On the sending side we also validate that zero-copy memory views work correctly.
+    #  Send a hello from myself...
+    send_msg = memoryview(("hello from " + invoke_type).encode("utf8"))
+    bytes_sent = sock.send(send_msg)
+    assert(bytes_sent == len(send_msg))
+    #  ...and expect to receive the corresponding greeting from the other side
+    recv_msg = None
+    sock.recv(recv_msg)
+    assert(recv_msg.decode("utf8") == "hello from " + other_side)
     sock.close()
     return {'statusCode': 200, 'body': 'Pairing test completed successfully'}
 

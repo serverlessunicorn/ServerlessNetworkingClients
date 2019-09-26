@@ -12,5 +12,28 @@ Resources:
         Properties:
             CodeUri: src/
             Handler: rendezvous.lambda_handler
+            Timeout: 10
             Layers:
               - "arn:aws:lambda:us-east-1:293602984666:layer:ServerlessNetworking-Python3:7"
+            Role: !GetAtt FunctionRole.Arn
+            # TODO: Add a policy that prevents invocation from anything other than this
+            #       function to itself.
+
+    FunctionRole:
+        Description: Role for the serverless networking python rendezvous test role
+        Type: AWS::IAM::Role
+        Properties:
+            RoleName: ServerlessNetworkingPython3RendezvousTestRole
+            # All Lambda roles need to enable Lambda to assume them...
+            AssumeRolePolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: [lambda.amazonaws.com]
+                      Action: sts:AssumeRole
+            # Permissions this role grants. Apart from Lambda logging capabilities, we
+            # need to be able to invoke ourselves in order to fork a child instance.
+            # The oddly name "AWSLambdaRole" represents the privilege to call Lambda.
+            ManagedPolicyArns:
+                - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaRole'
