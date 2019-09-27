@@ -2,38 +2,35 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: SAM file for NATPunch rendezvous test
 Globals:
-    Function:
-        Timeout: 3
-        Runtime: python3.7
+  Function:
+      Timeout: 3
+      Runtime: python3.7
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: ServerlessNetworkingPython3
+    Description: Serverless networking client for python3.7 and forward
+    Author: timwagner
+    SpdxLicenseId: BSD-2-Clause
+    #LicenseUrl: "http://udt.sourceforge.net/LICENSE.txt"
+    LicenseUrl: LICENSE.TXT
+    #ReadmeUrl: "https://github.com/serverlessunicorn/ServerlessNetworkingClients/blob/master/README.md"
+    ReadmeUrl: README
+    Labels: ['networking']
+    HomePageUrl: "https://github.com/serverlessunicorn/ServerlessNetworkingClients"
+    SemanticVersion: 0.0.1
+    SourceCodeUrl: "https://github.com/serverlessunicorn/ServerlessNetworkingClients"
 
 Resources:
-    Function:
-        Type: AWS::Serverless::Function 
-        Properties:
-            CodeUri: src/
-            Handler: rendezvous.lambda_handler
-            Timeout: 10
-            Layers:
-              - "arn:aws:lambda:us-east-1:293602984666:layer:ServerlessNetworking-Python3:7"
-            Role: !GetAtt FunctionRole.Arn
-            # TODO: Add a policy that prevents invocation from anything other than this
-            #       function to itself.
-
-    FunctionRole:
-        Description: Role for the serverless networking python rendezvous test role
-        Type: AWS::IAM::Role
-        Properties:
-            RoleName: ServerlessNetworkingPython3RendezvousTestRole
-            # All Lambda roles need to enable Lambda to assume them...
-            AssumeRolePolicyDocument:
-                Statement:
-                    - Effect: Allow
-                      Principal:
-                          Service: [lambda.amazonaws.com]
-                      Action: sts:AssumeRole
-            # Permissions this role grants. Apart from Lambda logging capabilities, we
-            # need to be able to invoke ourselves in order to fork a child instance.
-            # The oddly name "AWSLambdaRole" represents the privilege to call Lambda.
-            ManagedPolicyArns:
-                - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
-                - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaRole'
+  RendezvousFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: src/
+      Handler: rendezvous.lambda_handler
+      Timeout: 10
+      Layers:
+        - "arn:aws:lambda:us-east-1:293602984666:layer:ServerlessNetworking-Python3:7"
+      Policies:
+        # TODO: This should ideally be something like !GetAtt RendezvousFunction.FunctionName but
+        #       the SAM transformer and/or CF doesn't seem to like that...
+        - LambdaInvokePolicy: {FunctionName: "*"}
