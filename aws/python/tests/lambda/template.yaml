@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: SAM file for NATPunch rendezvous test
+Description: SAM file for Serverless Networking tests on Python3
 Globals:
   Function:
       Timeout: 3
@@ -34,3 +34,18 @@ Resources:
         # TODO: This should ideally be something like !GetAtt RendezvousFunction.FunctionName but
         #       the SAM transformer and/or CF doesn't seem to like that...
         - LambdaInvokePolicy: {FunctionName: "*"}
+
+  BandwidthFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: src/
+      Handler: bandwidth.lambda_handler
+      Timeout: 60
+      MemorySize: 3008
+      Layers:
+        - "arn:aws:lambda:us-east-1:293602984666:layer:ServerlessNetworking-Python3:7"
+      Policies:
+        # TODO: This should ideally be something like !GetAtt BandwidthFunction.FunctionName but
+        #       the SAM transformer and/or CF doesn't seem to like that...
+        - LambdaInvokePolicy: {FunctionName: "*"}
+
