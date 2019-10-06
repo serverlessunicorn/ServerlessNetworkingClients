@@ -146,7 +146,7 @@ def spawn_child(pairing_name):
         raise e # Re-raise
 
 async def p2p_connect(pairing_name, invoke_type):
-    async with websockets.connect(api_gw_uri) as websocket:
+    async with websockets.connect(api_gw_uri, extra_headers={'x-api-key':'serverlessnetworkingfreetrial'}) as websocket:
         # Communication with API GW is blocking, TCP-based, and via
         # websockets. The TCP connection will be closed via the "async with"
         # closure around us.
