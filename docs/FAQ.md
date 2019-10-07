@@ -9,8 +9,8 @@ You can add get many of the capabilities that "serverful" applications enjoy: fu
 1. _Can you show me a simple example?_  
 The following code copies a file from one AWS Lambda function to another (omitting exception catching for error handling):
 
-|Source function|Destination function|
-:--------------:|:-----------------:
+|:Source function:|:Destination function:|
+--------------|-----------------
 |`conn = connect('pairing_key_123')`|`conn = connect('pairing_key_123')`|
 |`conn.sendFile(filename)`|`conn.receiveFile(filename)`|
 
