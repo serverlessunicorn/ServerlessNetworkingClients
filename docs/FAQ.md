@@ -9,10 +9,10 @@ You can add get many of the capabilities that "serverful" applications enjoy: fu
 1. _Can you show me a simple example?_  
 The following code copies a file from one AWS Lambda function to another (omitting exception catching for error handling):
 
-|:Source function:|:Destination function:|
---------------|-----------------
+|           Source function         |        Destination function       |
+|-----------------------------------|-----------------------------------|
 |`conn = connect('pairing_key_123')`|`conn = connect('pairing_key_123')`|
-|`conn.sendFile(filename)`|`conn.receiveFile(filename)`|
+|`conn.sendFile(filename)`          |`conn.receiveFile(filename)`       |
 
 1. _Do I have to understand or write retry logic, sliding windows, or other networking-level code in order to use Serverless Networking?_  
 No! Serverless Networking handles the hard work for you. Reliable transport, including flow control, dynamic bandwidth tuning, and retry logic as well as higher level capabilities like buffer and file transfer in Python 3 work "out of the box".
@@ -24,7 +24,7 @@ The beta release targets AWS Lambda functions running outside of VPCs. Future re
 The beta release supports low-level C++ access (to the UDT library) and a higher-level Python 3.7 language binding. The open source Serverless Networking project is actively seeking participation to create additional language bindings and convenience layers built on top of the networking core code.
 
 1. _How much does Serverless Networking cost?_  
-Serverless Networking clients, including the reliable UDT C++ library and higher level language bindings are open source and free of charge. Forming connections between functions also requires a NAT Punching coordinator; ServerlessTech offers a fully hosted NAT Punching service with a free tier and modest pay-per-connect rates for production accounts. You can also deploy your own serverless NAT Punching coordinator. _Note that your cloud provider may charge you for data transmitted between functions._ For example, if you use Serverless Networking to communicate between two Lambda functions running in different subnets (also known as Availability Zones or "AZ"s) you will pay the inter-AZ data transfer rate.
+Serverless Networking clients, including the reliable UDT C++ library and higher level language bindings are open source and free of charge. Forming connections between functions also requires a NAT Punching coordinator; ServerlessTech offers a fully hosted NAT Punching service with a free tier and modest pay-per-connect rates for production accounts. You can also deploy your own serverless NAT Punching coordinator. _Note that your cloud provider may charge you for data transmitted between functions._ For example, if you use Serverless Networking to communicate between two Lambda functions running in different subnets (also known as Availability Zones or 'AZ's) you will pay the inter-AZ data transfer rate.
 
 1. _How does the speed and cost of Serverless Networking compare to alternatives like SNS or SQS?_  
 TBD...
