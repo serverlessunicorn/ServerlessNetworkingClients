@@ -26,7 +26,7 @@ pip install websockets
 python setup.py build_ext --inplace
 
 # Minimal test to ensure build, install, and LD_LIBRARY_PATH all work
-export LD_LIBARY_PATH=”../../udt/udt4”
+export LD_LIBARY_PATH=”../../udt/udt4/src”
 echo "from udt4py import UDTSocket; socket = UDTSocket()" | python
 
 # Stage for publishing but don't actually publish in this script
