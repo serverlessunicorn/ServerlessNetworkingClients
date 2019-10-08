@@ -23,10 +23,10 @@ python3 -m venv venv
 pip install websockets
 
 # Cython build requires the C/C++ udt4 includes in order to compile
+export LD_LIBRARY_PATH=../../udt/udt4/src
 python setup.py build_ext --inplace
 
 # Minimal test to ensure build, install, and LD_LIBRARY_PATH all work
-export LD_LIBARY_PATH=”../../udt/udt4”
 echo "from udt4py import UDTSocket; socket = UDTSocket()" | python
 
 # Stage for publishing but don't actually publish in this script

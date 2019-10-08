@@ -1,0 +1,4 @@
+. venv/bin/activate
+# If from a clean install...
+pip install boto3
+python publish_layer.py
