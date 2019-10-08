@@ -1,56 +1,45 @@
-# NATPunch bandwidth testing.
-import json
-import asyncio
-import websockets
-#import socket
-import sys
-import time
-from io import BlockingIOError
-from random import choice
+# Serverless Networking: Bandwidth testing
+# Instructions:
+#   (1) Run this as a python3.7 AWS Lambda function whose role permits
+#       Lambda invocations.
+#   (2) Ensure that the Serverless Networking Python 3 layer is attached.
+#   (3) The function must reside in us-east-1 during the beta in order
+#       to contact the NAT punching service endpoint.
+#   (4) Ensure that the Lambda function has a duration >= 60 seconds to enable enough time
+#       for spawning and connecting. ***To avoid paging overhead being measured, set
+#       memory size to 3GB.***
 import boto3
 from botocore.exceptions import ClientError
-from botocore.config import Config as BotoCoreConfig
+import json
+from random import choice, getrandbits 
 import string
+import sys
 import os
-from udt4py import UDTSocket
-import random
-
-# Global data:
-api_gw_uri = 'wss://services.serverlesstech.net/natpunch'
+import time
+from udt4py import UDTSocket, p2p_connect
 lambdasdk = boto3.client('lambda')
-
 def lambda_handler(event, context):
     if ('invoke_type' in event):
         invoke_type = event['invoke_type']
     else:
-        # Assume the parent role if not instructed otherwise
         invoke_type = 'parent'
-
     # If a pairing name is provided, use that; otherwise, generate a random one.
     if ('pairing_name' in event):
         pairing_name = event['pairing_name']
     else:
         pairing_name = generate_pairing_name(10)
-
-    eprint('Type of invoke: ' + invoke_type)
-    eprint('Pairing name to be used: ' + pairing_name)
-
+    eprint('' + invoke_type + ' using pairing_name ' + pairing_name)
     if (invoke_type == 'parent'):
         spawn_child(pairing_name)
-
-    remote_ip = asyncio.get_event_loop().run_until_complete(p2p_connect(pairing_name, invoke_type))
-    assert(remote_ip)
     begin = time.time()
-    sock = UDTSocket()
-    sock.UDT_MSS = 9000 # Experiment with this setting...
-    sock.UDT_RENDEZVOUS = True
-    my_address = ('0.0.0.0', 10000)
-    sock.bind(my_address)
-    remote_address = (remote_ip, 10000)
-    sock.connect(remote_address)
+    sock = p2p_connect(pairing_name)
+    if (not sock or sock.status != UDTSocket.Status.CONNECTED):
+        return {
+            'statusCode': 500,
+            'body': ('socket failed to rendezvous, state is:' + str(sock.status)) if sock else 'socket failed to pair'
+        }
     handshake_time = time.time() - begin
-    eprint('' + invoke_type + ': pairing test completed successfully, took ' + str(int(handshake_time*1000)) + 'ms')
- 
+    eprint('' + invoke_type + ': pairing test completed successfully, took ' + str(int(handshake_time*1000)) + 'ms') 
     eprint('====BANDWIDTH TEST====')
     if (invoke_type == 'parent'):
         eprint('Server (aka parent) starting...')
@@ -99,7 +88,7 @@ def lambda_handler(event, context):
         eprint('Client (aka child) starting...')
         eprint('Client: generating random payload...')
         total = 20000000
-        msg = memoryview(bytearray(random.getrandbits(8) for i in range(total)))
+        msg = memoryview(bytearray(getrandbits(8) for i in range(total)))
         eprint('Client: ...done. Attempting to send...')
         total_bytes_sent = 0
         while (True):
@@ -124,43 +113,23 @@ def generate_pairing_name(len=10):
 # invocation; the caller is responsible for establishing the UDP peering.
 def spawn_child(pairing_name):
     eprint('Beginning spawn_child for pairing name ' + pairing_name)
-    child_args_json = {
+    child_args = {
         'invoke_type': 'child',
         'pairing_name': pairing_name
     }
-    child_args_string = json.dumps(child_args_json)
-    child_args_bytes = child_args_string.encode()
+    child_args_bytes = json.dumps(child_args).encode()
     try:
         eprint('calling lambda invoke...')
         response = lambdasdk.invoke(
             FunctionName=os.environ['AWS_LAMBDA_FUNCTION_NAME'],
             InvocationType='Event', # aka async
             LogType='None',
-            #ClientContext='string', Not needed by this application
             Payload=child_args_bytes
-            #Qualifier='string' Run latest version of the function
         )
         eprint('...lambda invoke succeeded')
     except ClientError as e:
         eprint('Attempt to spawn child Lambda failed: ' + e.response['Error']['Message'])
         raise e # Re-raise
-
-async def p2p_connect(pairing_name, invoke_type):
-    async with websockets.connect(api_gw_uri, extra_headers={'x-api-key':'serverlessnetworkingfreetrial'}) as websocket:
-        # Communication with API GW is blocking, TCP-based, and via
-        # websockets. The TCP connection will be closed via the "async with"
-        # closure around us.
-        msg = {
-            "action":       "pair",
-            "pairing_name": pairing_name
-        }
-        eprint(invoke_type + ' initiating source IP exchange using NATPunch Websocket...')
-        msg_as_string = json.dumps(msg)
-        await websocket.send(msg_as_string)
-        response = await websocket.recv()
-        eprint('...API GW connection response: ' + response)
-        response_as_json = json.loads(response)
-        return response_as_json['SourceIP']
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -171,10 +140,3 @@ class DecimalEncoder(json.JSONEncoder):
             return str(obj)
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
-
-if __name__ == '__main__':
-    # If run from the command line, run a simple test.
-    # If this is done from a laptop, the nat punching probably won't work, but
-    # at least it's a good way to determine if the Python syntax and imports are valid before
-    # attempting a real run in Lambda...
-    eprint('Result: ' + lambda_handler(None, None))
