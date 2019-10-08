@@ -39,6 +39,10 @@ libudt4 URL:            http://udt.sourceforge.net/
 
 import os
 
+# These two are used by p2p_connect to talk to the NAT puncher
+import websockets
+import asyncio
+
 from libc.string cimport memset
 from libc.stdint cimport int64_t, uint64_t, int32_t, uint32_t, uint16_t, \
     intptr_t
@@ -288,6 +292,52 @@ def shutdown():
 
 atexit.register(shutdown)
 
+def p2p_connect(pairing_name:     str,
+                api_key:          str='serverlessnetworkingfreetrial',
+                local_port:       int=10000,
+                remote_port:      int=10000,
+                natpunch_timeout: int=30,
+                natpunch_server:  str='services.serverlesstech.net/natpunch') -> UDTSocket:
+    """ 
+    Connect to a remote networking peer.
+  
+    Performs both NAT punching and rendezvous. The result is a new UDTSocket instance
+    ready to perform reliable messaging and file transfers.
+
+    Parameters: 
+    pairing_name (str):     Virtual address; both sides must use the same pairing_name to connect. Required argument.
+    api_key (str):          API key to pass to NAT punch web socket. Optional, defaults to 'serverlessnetworkingfreetrial' (which is only valid if natpunch_server is set to the default)
+    local_port (int):       UDP port number to use on this side of the connection. Optional, defaults to 10000.
+    remote_port (int):      UDP port number to use for the remote side of the connection. Optional, defaults to 10000.
+    natpunch_timeout (int): Seconds to wait attempting to NAT punch/pair. Optional, defaults to 30. Note that rendezvous has a separate, udt-specified timeout.
+    natpunch_server (str):  Host and path portion of URL to use for websocket NAT punch operation. Optional, defaults to services.serverlesstech.net/natpunch.
+
+    Returns:
+    UDTSocket: A new UDTSocket instance representing the p2p connection for pairing_name, or None if NAT punching failed. Clients should
+               check the status of the socket to ensure it's in a CONNECTED state before proceeding to use it.
+    
+    """
+    async def natpunch():
+        async with websockets.connect('wss://' + natpunch_server,
+                                      extra_headers={'x-api-key':api_key}) as websocket:
+            msg_as_string = json.dumps({
+                "action":       "pair",
+                "pairing_name": pairing_name
+            })
+            await websocket.send(msg_as_string)
+            try:
+                return json.loads(await asyncio.wait_for(websocket.recv(), timeout=natpunch_timeout))['SourceIP']
+            except asyncio.TimeoutError:
+                return None
+    remote_ip = asyncio.run(natpunch())
+    if (not remote_ip):
+        return None
+    usock = UDTSocket()
+    usock.UDT_MSS = 9000
+    usock.UDT_RENDEZVOUS = True
+    usock.bind(('0.0.0.0', local_port))
+    usock.connect((remote_ip, remote_port))
+    return usock
 
 cdef char *python_buffer_to_bytes(buf):
     if isinstance(buf, bytes):
