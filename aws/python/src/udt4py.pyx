@@ -42,6 +42,7 @@ import os
 # These two are used by p2p_connect to talk to the NAT puncher
 import websockets
 import asyncio
+import json
 
 from libc.string cimport memset
 from libc.stdint cimport int64_t, uint64_t, int32_t, uint32_t, uint16_t, \
