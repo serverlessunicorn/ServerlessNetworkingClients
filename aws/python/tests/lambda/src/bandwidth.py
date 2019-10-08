@@ -1,3 +1,4 @@
+# NATPunch bandwidth testing.
 import json
 import asyncio
 import websockets
@@ -14,7 +15,7 @@ import os
 from udt4py import UDTSocket
 import random
 
-# Websocket endpoint
+# Global data:
 api_gw_uri = 'wss://services.serverlesstech.net/natpunch'
 lambdasdk = boto3.client('lambda')
 
@@ -35,21 +36,10 @@ def lambda_handler(event, context):
     eprint('Pairing name to be used: ' + pairing_name)
 
     if (invoke_type == 'parent'):
-        other_side = 'child'
         spawn_child(pairing_name)
-    else:
-        other_side = 'parent'
 
-    # Do the IP exchange with the peer; if I'm the parent, my child will be
-    # doing likewise. If I'm the child, my parent did this after spawning me.
     remote_ip = asyncio.get_event_loop().run_until_complete(p2p_connect(pairing_name, invoke_type))
     assert(remote_ip)
-
-    # Now we have remote IP but still need to do the actual NAT punch.
-    # The two roles share a common prolog, but then diverge depending on their role.
-    # P2P communication is datagram (UDP) based and is set to non blocking
-    # Retries, errors, and socket closure are handled manually for this
-    # conversation.
     begin = time.time()
     sock = UDTSocket()
     sock.UDT_MSS = 9000 # Experiment with this setting...
@@ -60,22 +50,68 @@ def lambda_handler(event, context):
     sock.connect(remote_address)
     handshake_time = time.time() - begin
     eprint('' + invoke_type + ': pairing test completed successfully, took ' + str(int(handshake_time*1000)) + 'ms')
-    # Verify integrity of connection. Note that the messages are short
-    # so we don't have to worry about looping over incremental send/receive results.
-    # Allow any exceptions to go uncaught for now (results will show up in CW Logs).
-    # On the sending side we also validate that zero-copy memory views work correctly.
-    #  Send a hello from myself...
-    send_msg = memoryview(("hello from " + invoke_type).encode("utf8"))
-    bytes_sent = sock.send(send_msg)
-    assert(bytes_sent == len(send_msg))
-    #  ...and expect to receive the corresponding greeting from the other side
-    recv_buf = bytearray(100)
-    bytes_received = sock.recv(recv_buf)
-    recv_msg = recv_buf[0:bytes_received].decode("utf8")
-    eprint('Received: ' + recv_msg)
-    assert(recv_msg == "hello from " + other_side)
-    sock.close()
-    return {'statusCode': 200, 'body': 'Pairing test completed successfully'}
+ 
+    eprint('====BANDWIDTH TEST====')
+    if (invoke_type == 'parent'):
+        eprint('Server (aka parent) starting...')
+        buf_size = 20000000
+        msg = bytearray(buf_size)
+        total_bytes_received = 0
+        start_time = None
+        bytes_to_skip = 0
+        try:
+            while True:
+                bytes_received = sock.recv(msg)
+                total_bytes_received += bytes_received
+                # Don't start timer until the first bytes are received, to avoid
+                # timing the cosntruction of the payload in the client.
+                if (start_time == None):
+                    start_time = time.time()
+                    bytes_to_skip = total_bytes_received # Don't count towards bandwidth
+                eprint('MB: ' + str(int(total_bytes_received/100000) / 10))
+                if (total_bytes_received >= buf_size or not bytes_received):
+                    break
+        except Exception as e:
+            eprint('Server received exception: ' + str(e))
+        elapsed_seconds = time.time() - start_time
+        eprint('Server: total of ' + str(total_bytes_received) + ' bytes received in ' + str(elapsed_seconds) + 'seconds')
+        # Subtract the first payload from the bandwidth calculation, because we didn't start the timer until after the
+        # first payload.
+        bits_received = (total_bytes_received - bytes_to_skip) * 8
+        megabits_per_second = int((bits_received / elapsed_seconds) / 1000000)
+        eprint('Server: receive complete. Transfer rate was ' + str(megabits_per_second) + ' Mbit/s')
+        try:
+            perf_stats = sock.perfmon()
+            eprint('Perf stats: ' + str(vars(perf_stats)))
+            if (perf_stats.pktRcvLossTotal > 0):
+                normalized_bandwidth = int((bits_received / (elapsed_seconds * (1.0 - perf_stats.pktRcvLossTotal/perf_stats.pktRecvTotal) )) / 1000000)
+                eprint('Normalized bandwidth: ' + str(normalized_bandwidth))
+            else:
+                eprint('Normalized bandwidth is the same as real bandwidth (no packets lost)')
+        except Exception as e:
+            eprint('Perfmon stats not available: ' + str(e))
+        sock.close()
+        return {
+            'statusCode': 200,
+            'body': 'Pairing and bandwidth test completed successfully with Mbit/s transfer rate of ' + str(megabits_per_second)
+        }
+    else:
+        eprint('Client (aka child) starting...')
+        eprint('Client: generating random payload...')
+        total = 20000000
+        msg = memoryview(bytearray(random.getrandbits(8) for i in range(total)))
+        eprint('Client: ...done. Attempting to send...')
+        total_bytes_sent = 0
+        while (True):
+            bytes_sent = sock.send(msg)
+            total_bytes_sent += bytes_sent
+            if (total_bytes_sent >= total):
+                break;
+        eprint('...' + str(total_bytes_sent / 1000000) + ' MB sent')
+        assert(total_bytes_sent == total)
+        eprint('Client: transfer complete from client (sending) side')
+        sock.close()
+    return {'statusCode': 200, 'body': 'Pairing and bandwidth test completed successfully'}
 
 # Generate a random string matching the regexp [_a-zA-Z0-9]{length}
 def generate_pairing_name(len=10):
@@ -135,3 +171,10 @@ class DecimalEncoder(json.JSONEncoder):
             return str(obj)
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
+
+if __name__ == '__main__':
+    # If run from the command line, run a simple test.
+    # If this is done from a laptop, the nat punching probably won't work, but
+    # at least it's a good way to determine if the Python syntax and imports are valid before
+    # attempting a real run in Lambda...
+    eprint('Result: ' + lambda_handler(None, None))
