@@ -8,6 +8,7 @@ You can add get many of the capabilities that "serverful" applications enjoy: fu
 
 1. _Can you show me a simple example?_  
 The following code sends string between two Lambda functions (error handling has been omitted for clarity):
+
     |           Source function         |        Destination function       |
     |-----------------------------------|-----------------------------------|
     |`conn = connect('pairing_key_123')`|`conn = connect('pairing_key_123')`|
