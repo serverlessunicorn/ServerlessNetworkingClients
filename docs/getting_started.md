@@ -30,8 +30,11 @@ The easiest way to get up and running is to [deploy the sample app in us-east-1 
         buf = bytearray(20)
         len = sock.recv(buf)
         msg = buf[0:len].decode('utf8')
-        
+
 1. An example of transferring disk files (from Lambda's /tmp filesystem) is included in the sample code.
 1. Other things you can do include sending datagram-like messages with lower reliability guarantees, poll for sockets that are ready to send or receive (UDTEpoll, similar to unix select), or retrieve performance data using perfmon().
 1. When you're finished with a socket, execute `sock.close()` for graceful shutdown.
 1. Best practice is to recreate any sockets you need on each Lambda invocation; placing a socket in a global variable may lead to broken connections between Lambda invocations. (At a minimum, you should check the status of such a socket before attempting to reuse it on the next Lambda invoke.)
+
+### API docs
+You can find additional API-level documentation using Python docstring and help features and in [the Cython sources](https://github.com/serverlessunicorn/ServerlessNetworkingClients/blob/master/aws/python/src/udt4py.pyx).
