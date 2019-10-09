@@ -11,20 +11,26 @@ The easiest way to get up and running is to [deploy the sample app in us-east-1 
 
 1. Add imports: `from udt4py import UDTSocket, p2p_connect`  
 1. To communicate, you need both sides to execute the connection code. This can be two Lambda functions, two instances of the same Lambda function, a Lambda function and a server, etc.  
-    sock = p2p_connect(pairing_name)
-    if (not sock or sock.status != UDTSocket.Status.CONNECTED):
-        return {
-            'statusCode': 500,
-            'body': ('socket failed to rendezvous, state is:' + str(sock.status)) if sock else 'socket failed to pair'
-        }
+
+        sock = p2p_connect(pairing_name)
+        if (not sock or sock.status != UDTSocket.Status.CONNECTED):
+            return {
+                'statusCode': 500,
+                'body': ('socket failed to rendezvous, state is:' + str(sock.status)) if sock else 'socket failed to pair'
+            }
+
 1. Sending data is easy - you can use the bytearray, byte (readonly bytearray), encoded strings, or memoryviews:
+
         bytes_sent1 = sock.send('Test 1'.encode('utf8'))
         bytes_sent2 = sock.send(bytes('Test 2', 'utf8'))
         bytes_sent3 = sock.send(memoryview(b'Test 3'))
+
 1. Receiving is equally easy; if you're working with strings, you'll probably want to decode it into utf8. The code below shows how to avoid trailing NULLs in your string.
-    buf = bytearray(20)
-    len = sock.recv(buf)
-    msg = buf[0:len].decode('utf8')
+
+        buf = bytearray(20)
+        len = sock.recv(buf)
+        msg = buf[0:len].decode('utf8')
+        
 1. An example of transferring disk files (from Lambda's /tmp filesystem) is included in the sample code.
 1. Other things you can do include sending datagram-like messages with lower reliability guarantees, poll for sockets that are ready to send or receive (UDTEpoll, similar to unix select), or retrieve performance data using perfmon().
 1. When you're finished with a socket, execute `sock.close()` for graceful shutdown.
