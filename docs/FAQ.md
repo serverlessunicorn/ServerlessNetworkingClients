@@ -14,6 +14,12 @@ The following code sends string between two Lambda functions (error handling has
 |`conn = connect('pairing_key_123')`|`conn = connect('pairing_key_123')`|
 |`conn.send(b'Hello!')`             |`conn.recv(buf)`                   |
 
+1. How does Serverless Networking work?
+Serverless Networking enables communication between Lambda functions (or between Lambd and an application running on EC2 or other servers) by using a reliable protocol layered on top of UDP. Although UDP (also called datagrams) is _un_reliable, Serverless Networking messages are fully reliable - it handles retransmissions, dropped packets, out-of-order delivery, flow control, and other issues similar to (but distinct from) TCP. To establish a connection between Lambdas, which operate behind a NAT, Serverless Networking also relies on a scalable, websocket-basd NAT Puncher-as-a-Service. This Amazon API Gateway-hosted public service replaces the role that STUN and TURN servers occupy in traditional content-based NAT punching scenarios.
+
+1. How is Serverless Networking packaged?
+Serverless Networking is delivered as a public Lambda Layer. By default, it connects to the NAT Puncher service hosted by Serverless Tech. You can also deploy your own NAT Puncher or use the open source library and Python language bindings under a BSD license.
+
 1. _Do I have to understand or write retry logic, sliding windows, or other networking-level code in order to use Serverless Networking?_  
 No! Serverless Networking handles the hard work for you. Reliable transport, including flow control, dynamic bandwidth tuning, and retry logic as well as higher level capabilities like buffer and file transfer in Python 3 work "out of the box".
 
@@ -31,6 +37,18 @@ Serverless Networking adds a reliability layer to UDP sockets; it generally perf
 
 1. _How is Serverless Networking licensed?_
 Serverless Networking and the udt4 library offer an enterprise-friendly BSD license.
+
+1. Who can use the beta?
+The beta is open to everyone.
+
+1. Where is the beta available?
+The beta is initially available in AWS us-east-1.
+
+1. Do I need an API key to get started? Can I get my own NAT Punch API key?
+Serverless Networking uses a shared demo API Key by default to enable you to get started without needing to sign up. You can also subscribe to get your own API Key and private usage plan. Many users will find the free tier sufficient, but after the  beta period is complete, you can also upgrade a subscription to a paid account if you need high levels of NAT Punch capacity. _Note that data transfers using the Serverless Networking client are free and the client is open source code._
+
+1. Do I need special tools to use Serverless Networking?
+No - it appears to you as normal Python 3 code. Importing a couple of symbols is all that's required.
 
 1. _I'm an advanced networking user. Can I get access to the UDP sockets and code directly against them?_  
 Yes. You can use the NAT Punching service to establish connectivity (and optionally handle rendezvous) but then write your own UDP code directly against Unix sockets in either C/C++ or Python 3.
