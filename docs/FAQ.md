@@ -8,11 +8,10 @@ You can add get many of the capabilities that "serverful" applications enjoy: fu
 
 1. _Can you show me a simple example?_  
 The following code sends string between two Lambda functions (error handling has been omitted for clarity):
-
-  |           Source function         |        Destination function       |
-  |-----------------------------------|-----------------------------------|
-  |`conn = connect('pairing_key_123')`|`conn = connect('pairing_key_123')`|
-  |`conn.send(b'Hello!')`             |`conn.recv(buf)`                   |
+    |           Source function         |        Destination function       |
+    |-----------------------------------|-----------------------------------|
+    |`conn = connect('pairing_key_123')`|`conn = connect('pairing_key_123')`|
+    |`conn.send(b'Hello!')`             |`conn.recv(buf)`                   |
 
 1. _How does Serverless Networking work?_  
 Serverless Networking enables communication between Lambda functions (or between Lambd and an application running on EC2 or other servers) by using a reliable protocol layered on top of UDP. Although UDP (also called datagrams) is _un_reliable, Serverless Networking messages are fully reliable - it handles retransmissions, dropped packets, out-of-order delivery, flow control, and other issues similar to (but distinct from) TCP. To establish a connection between Lambdas, which operate behind a NAT, Serverless Networking also relies on a scalable, websocket-basd NAT Puncher-as-a-Service. This Amazon API Gateway-hosted public service replaces the role that STUN and TURN servers occupy in traditional content-based NAT punching scenarios.
