@@ -9,10 +9,11 @@ You can add get many of the capabilities that "serverful" applications enjoy: fu
 1. _Can you show me a simple example?_  
 The following code sends string between two Lambda functions (error handling has been omitted for clarity):
 
-|           Source function         |        Destination function       |
-|-----------------------------------|-----------------------------------|
-|`conn = connect('pairing_key_123')`|`conn = connect('pairing_key_123')`|
-|`conn.send(b'Hello!')`             |`conn.recv(buf)`                   |
+  |           Source function         |        Destination function       |
+  |-----------------------------------|-----------------------------------|
+  |`conn = connect('pairing_key_123')`|`conn = connect('pairing_key_123')`|
+  |`conn.send(b'Hello!')`             |`conn.recv(buf)`                   |
+
 1. _How does Serverless Networking work?_  
 Serverless Networking enables communication between Lambda functions (or between Lambd and an application running on EC2 or other servers) by using a reliable protocol layered on top of UDP. Although UDP (also called datagrams) is _un_reliable, Serverless Networking messages are fully reliable - it handles retransmissions, dropped packets, out-of-order delivery, flow control, and other issues similar to (but distinct from) TCP. To establish a connection between Lambdas, which operate behind a NAT, Serverless Networking also relies on a scalable, websocket-basd NAT Puncher-as-a-Service. This Amazon API Gateway-hosted public service replaces the role that STUN and TURN servers occupy in traditional content-based NAT punching scenarios.
 
@@ -32,7 +33,7 @@ The beta release supports low-level C++ access (to the UDT library) and a higher
 The Serverless Networking client code is open source and free of charge. Currently, AWS does not charge data transfer fees for data sent between functions, and so data transferred using Serverless Networking is also free of additional charges. Forming connections between functions requires a NAT Punching coordinator; ServerlessTech offers a fully hosted NAT Punching service with a free tier, free beta evaluation mode, and modest pay-per-connect rates for production accounts. You can also deploy your own serverless NAT Punching coordinator.
 
 1. _How fast is Serverless Networking?_  
-Serverless Networking adds a reliability layer to UDP sockets; it generally performs as good or better than TCP/IP communication. _Note that network bandwidth is determined by your cloud vendor's hypervisor and operating system settings._
+Serverless Networking adds a reliability layer to UDP sockets; it generally performs as good or better than TCP/IP communication. _Note that network bandwidth is determined by your cloud vendor._
 
 1. _How is Serverless Networking licensed?_  
 Serverless Networking and the udt4 library offer an enterprise-friendly BSD license.
