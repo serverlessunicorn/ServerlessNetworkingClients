@@ -1,3 +1,6 @@
+.DS_STORE
+.vscode/
+
 stage_layer/
 
 *.py[cod]

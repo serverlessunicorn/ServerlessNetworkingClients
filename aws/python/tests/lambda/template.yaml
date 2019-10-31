@@ -18,7 +18,7 @@ Metadata:
     ReadmeUrl: README
     Labels: ['networking']
     HomePageUrl: "https://github.com/serverlessunicorn/ServerlessNetworkingClients"
-    SemanticVersion: 0.0.1
+    SemanticVersion: 0.0.3
     SourceCodeUrl: "https://github.com/serverlessunicorn/ServerlessNetworkingClients"
 
 Resources:
