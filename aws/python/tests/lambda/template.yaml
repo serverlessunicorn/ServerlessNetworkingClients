@@ -18,7 +18,7 @@ Metadata:
     ReadmeUrl: README
     Labels: ['networking']
     HomePageUrl: "https://github.com/serverlessunicorn/ServerlessNetworkingClients"
-    SemanticVersion: 0.0.1
+    SemanticVersion: 0.0.4
     SourceCodeUrl: "https://github.com/serverlessunicorn/ServerlessNetworkingClients"
 
 Resources:
@@ -29,7 +29,7 @@ Resources:
       Handler: rendezvous.lambda_handler
       Timeout: 10
       Layers:
-        - "arn:aws:lambda:us-east-1:293602984666:layer:ServerlessNetworking-Python3:7"
+        - "arn:aws:lambda:us-east-1:293602984666:layer:ServerlessNetworking-Python3:10"
       Policies:
         # TODO: This should ideally be something like !GetAtt RendezvousFunction.FunctionName but
         #       the SAM transformer and/or CF doesn't seem to like that...
@@ -43,7 +43,7 @@ Resources:
       Timeout: 60
       MemorySize: 3008
       Layers:
-        - "arn:aws:lambda:us-east-1:293602984666:layer:ServerlessNetworking-Python3:7"
+        - "arn:aws:lambda:us-east-1:293602984666:layer:ServerlessNetworking-Python3:10"
       Policies:
         # TODO: This should ideally be something like !GetAtt BandwidthFunction.FunctionName but
         #       the SAM transformer and/or CF doesn't seem to like that...
