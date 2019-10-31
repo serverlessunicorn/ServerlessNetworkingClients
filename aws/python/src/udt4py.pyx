@@ -371,29 +371,21 @@ def p2p_connect(pairing_name:     str,
             })
             await websocket.send(msg_as_string)
             try:
-                print('Sending completed, trying to load websocket result')
                 result = await asyncio.wait_for(websocket.recv(), timeout=natpunch_timeout)
-                print('Receive completed; got ' + result)
                 json_result = json.loads(result)
-                print('Here that is again as JSON: ' + str(json_result))
                 source_ip = json_result['SourceIP']
-                print('SourceIP in that is: ' + source_ip)
                 return source_ip
             except asyncio.TimeoutError:
                 return None
     remote_ip = asyncio.run(natpunch())
-    print('Remote IP returnted was: ' + remote_ip, flush=True)
     if (not remote_ip):
         return None
-    print('About to create socket...', flush=True)
     usock = UDTSocket()
     usock.UDT_MSS = 9000
     usock.UDT_RENDEZVOUS = True
-    print('About to bind', flush=True)
     usock.bind(('0.0.0.0', local_port))
-    print('About to connect', flush=True)
+    print('Trying to connect to ' + remote_ip, flush=True)
     usock.connect((remote_ip, remote_port))
-    print('about to return', flush=True)
     return usock
 
 cdef char *python_buffer_to_bytes(buf):
