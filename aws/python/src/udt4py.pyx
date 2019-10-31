@@ -324,30 +324,31 @@ def p2p_connect(pairing_name:     str,
                check the status of the socket to ensure it's in a CONNECTED state before proceeding to use it.
     
     """
-    async def natpunch():
-        # Create a version of the websocket client class that handles AWS sigv4
-        # authorization by overriding the 'write_http_request' method with the
-        # logic to construct an x-amzn-auth header at the last possible moment.
-        class WebSocketSigv4ClientProtocol(websockets.WebSocketClientProtocol):
-            def __init__(self, *args, **kwargs) -> None:
-                super().__init__(*args, **kwargs)
-            def write_http_request(self, path: str, headers) -> None:
-                # Intercept the GET that initiates the websocket protocol at the point where
-                # all of its 'real' headers have been constructed. Add in the sigv4 header AWS needs.
-                credentials = Credentials(
-                    os.environ['AWS_ACCESS_KEY_ID'],
-                    os.environ['AWS_SECRET_ACCESS_KEY'],
-                    os.environ['AWS_SESSION_TOKEN'])
-                sigv4 = SigV4Auth(credentials, 'execute-api', os.environ['AWS_REGION'])
-                request = AWSRequest(method='GET', url='https://' + natpunch_server)
-                sigv4.add_auth(request)
-                prepped = request.prepare()
-                headers['Authorization'       ] = prepped.headers['Authorization'       ]
-                headers['X-Amz-Date'          ] = prepped.headers['X-Amz-Date'          ]
-                headers['x-amz-security-token'] = prepped.headers['x-amz-security-token']
-                # Run the original code with the added sigv4 auth header now included:
-                super().write_http_request(path, headers)
 
+    # Create a version of the websocket client class that handles AWS sigv4
+    # authorization by overriding the 'write_http_request' method with the
+    # logic to construct an x-amzn-auth header at the last possible moment.
+    class WebSocketSigv4ClientProtocol(websockets.WebSocketClientProtocol):
+        def __init__(self, *args, **kwargs) -> None:
+            super().__init__(*args, **kwargs)
+        def write_http_request(self, path: str, headers) -> None:
+            # Intercept the GET that initiates the websocket protocol at the point where
+            # all of its 'real' headers have been constructed. Add in the sigv4 header AWS needs.
+            credentials = Credentials(
+                os.environ['AWS_ACCESS_KEY_ID'],
+                os.environ['AWS_SECRET_ACCESS_KEY'],
+                os.environ['AWS_SESSION_TOKEN'])
+            sigv4 = SigV4Auth(credentials, 'execute-api', os.environ['AWS_REGION'])
+            request = AWSRequest(method='GET', url='https://' + natpunch_server)
+            sigv4.add_auth(request)
+            prepped = request.prepare()
+            headers['Authorization'       ] = prepped.headers['Authorization'       ]
+            headers['X-Amz-Date'          ] = prepped.headers['X-Amz-Date'          ]
+            headers['x-amz-security-token'] = prepped.headers['x-amz-security-token']
+            # Run the original code with the added sigv4 auth header now included:
+            super().write_http_request(path, headers)
+
+    async def natpunch():
         if (not 'AWS_ACCESS_KEY_ID' in os.environ):
             raise Exception('missing environment variable(s) required for signing',
                             'AWS_ACCESS_KEY_ID not present')
