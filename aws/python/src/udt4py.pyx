@@ -44,6 +44,12 @@ import websockets
 import asyncio
 import json
 
+# The next three are used to sign the initial HTTP request in the websocket,
+# enabling IAM authorization to be used on the API Gateway websocket.
+from botocore.auth import SigV4Auth
+from botocore.awsrequest import AWSRequest
+from botocore.credentials import Credentials
+
 from libc.string cimport memset
 from libc.stdint cimport int64_t, uint64_t, int32_t, uint32_t, uint16_t, \
     intptr_t
@@ -319,7 +325,42 @@ def p2p_connect(pairing_name:     str,
     
     """
     async def natpunch():
+        # Create a version of the websocket client class that handles AWS sigv4
+        # authorization by overriding the 'write_http_request' method with the
+        # logic to construct an x-amzn-auth header at the last possible moment.
+        def class WebSocketSigv4ClientProtocol(WebSocketClientProtocol):
+            def __init__(self, *args, **kwargs) -> None:
+                super().__init__(*args, **kwargs)
+            def write_http_request(self, path: str, headers: Headers) -> None:
+                # Intercept the GET that initiates the websocket protocol at the point where
+                # all of its 'real' headers have been constructed. Add in the sigv4 header AWS needs.
+                credentials = Credentials(
+                    os.environ['AWS_ACCESS_KEY_ID'],
+                    os.environ['AWS_SECRET_ACCESS_KEY'],
+                    os.environ['AWS_SESSION_TOKEN'])
+                sigv4 = SigV4Auth(credentials, 'execute-api', os.environ['AWS_REGION'])
+                request = AWSRequest(method='GET', url='https://' + natpunch_server)
+                sigv4.add_auth(request)
+                prepped = request.prepare()
+                headers['x-amzn-auth'] = prepped.headers['x-amzn-auth']
+                # Run the original code with the added sigv4 auth header now included:
+                super().write_http_request(path, headers)
+
+        if (not 'AWS_ACCESS_KEY_ID' in os.environ):
+            raise Exception('missing environment variable(s) required for signing',
+                            'AWS_ACCESS_KEY_ID not present')
+        if (not 'AWS_SECRET_ACCESS_KEY' in os.environ):
+            raise Exception('missing environment variable(s) required for signing',
+                            'AWS_SECRET_ACCESS_KEY not present')
+        if (not 'AWS_SESSION_TOKEN' in os.environ):
+            raise Exception('missing environment variable(s) required for signing',
+                            'AWS_SESSION_TOKEN not present')
+        if (not 'AWS_REGION' in os.environ):
+            raise Exception('missing environment variable(s) required for signing',
+                            'AWS_REGION not present')
+
         async with websockets.connect('wss://' + natpunch_server,
+                                      create_protocol:WebSocketSigv4ClientProtocol,
                                       extra_headers={'x-api-key':api_key}) as websocket:
             msg_as_string = json.dumps({
                 "action":       "pair",

@@ -18,20 +18,20 @@ Metadata:
     ReadmeUrl: README
     Labels: ['networking']
     HomePageUrl: "https://github.com/serverlessunicorn/ServerlessNetworkingClients"
-    SemanticVersion: 0.0.4
+    SemanticVersion: 0.0.5
     SourceCodeUrl: "https://github.com/serverlessunicorn/ServerlessNetworkingClients"
 
 Resources:
-  RendezvousFunction:
+  NetworkingSampleFunction:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: src/
-      Handler: rendezvous.lambda_handler
+      Handler: networking_sample.lambda_handler
       Timeout: 10
       Layers:
         - "arn:aws:lambda:us-east-1:293602984666:layer:ServerlessNetworking-Python3:10"
       Policies:
-        # TODO: This should ideally be something like !GetAtt RendezvousFunction.FunctionName but
+        # TODO: This should ideally be something like !GetAtt NetworkingSampleFunction.FunctionName but
         #       the SAM transformer and/or CF doesn't seem to like that...
         - LambdaInvokePolicy: {FunctionName: "*"}
 
@@ -48,4 +48,3 @@ Resources:
         # TODO: This should ideally be something like !GetAtt BandwidthFunction.FunctionName but
         #       the SAM transformer and/or CF doesn't seem to like that...
         - LambdaInvokePolicy: {FunctionName: "*"}
-
