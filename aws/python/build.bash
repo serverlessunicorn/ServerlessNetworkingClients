@@ -21,6 +21,7 @@ python3 -m venv venv
 
 # Ensure websockets installed; we'll add this to the layer
 pip install websockets
+pip install boto3
 
 # Cython build requires the C/C++ udt4 includes in order to compile
 export LD_LIBRARY_PATH=../../udt/udt4/src
