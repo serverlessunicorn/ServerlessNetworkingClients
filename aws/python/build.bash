@@ -20,6 +20,7 @@ python3 -m venv venv
 . venv/bin/activate
 
 # Ensure websockets installed; we'll add this to the layer
+pip install --upgrade pip
 pip install websockets
 pip install boto3
 
@@ -28,7 +29,7 @@ export LD_LIBRARY_PATH=../../udt/udt4/src
 python setup.py build_ext --inplace
 
 # Minimal test to ensure build, install, and LD_LIBRARY_PATH all work
-echo "from udt4py import UDTSocket; socket = UDTSocket()" | python
+python lambda_networking/__init__.py
 
 # Stage for publishing but don't actually publish in this script
 rm -rf stage_layer

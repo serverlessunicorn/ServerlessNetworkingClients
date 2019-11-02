@@ -3,5 +3,6 @@
 python setup.py clean --all
 rm -rf *egg*
 rm -f *.so
-rm -f src/*.cpp
+rm -f lambda_networking/*.cpp
 rm -rf stage_layer
+rm -rf build
