@@ -83,9 +83,7 @@ def pair(pairing_name:     str,
             await websocket.send(msg_as_string)
             try:
                 result = await asyncio.wait_for(websocket.recv(), timeout=natpunch_timeout)
-                json_result = json.loads(result)
-                source_ip = json_result['SourceIP']
-                return source_ip
+                return json.loads(result)['SourceIP']
             except asyncio.TimeoutError:
                 return None
     remote_ip = asyncio.run(natpunch())

@@ -7,15 +7,21 @@
 #       to contact the NAT punching service endpoint.
 #   (4) Ensure that the Lambda function has a duration >= 10 seconds to enable enough time
 #       for spawning and connecting.
-import boto3
-from botocore.exceptions import ClientError
+
 import json
+import os
 from random import choice
 import string
-import os
 import time
-from udt4py import UDTSocket, p2p_connect
+
+import boto3
+from botocore.exceptions import ClientError
+
+from udt4py import UDTSocket
+from lambda_networking.connect import pair
+
 lambdasdk = boto3.client('lambda')
+
 def lambda_handler(event, context):
     if ('invoke_type' in event):
         invoke_type = event['invoke_type']
@@ -29,7 +35,7 @@ def lambda_handler(event, context):
     print('' + invoke_type + ' using pairing_name ' + pairing_name)
     if (invoke_type == 'parent'):
         spawn_child(pairing_name)
-    sock = p2p_connect(pairing_name)
+    sock = pair(pairing_name)
     if (not sock or sock.status != UDTSocket.Status.CONNECTED):
         return {
             'statusCode': 500,
