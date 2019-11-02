@@ -7,15 +7,15 @@ from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
 from botocore.credentials import Credentials
 
-# Local version, because we had to patch it.
 import udt4py
+from udt4py import UDTSocket
 
 def pair(pairing_name:     str,
-                api_key:          str='serverlessnetworkingfreetrial',
-                local_port:       int=10000,
-                remote_port:      int=10000,
-                natpunch_timeout: int=30,
-                natpunch_server:  str='services.serverlesstech.net/natpunch') -> UDTSocket:
+         api_key:          str='serverlessnetworkingfreetrial',
+         local_port:       int=10000,
+         remote_port:      int=10000,
+         natpunch_timeout: int=30,
+         natpunch_server:  str='services.serverlesstech.net/natpunch') -> UDTSocket:
     """ 
     Connect to a remote networking peer.
   

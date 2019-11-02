@@ -38,7 +38,7 @@ libudt4 URL:            http://udt.sourceforge.net/
 
 from setuptools import setup,Extension
 setup(
-    name="lambda_networking",
+    name="udt4py",
     description='libudt4 Python wrapper written with Cython',
     version="1.2",
     license="Simplified BSD",
@@ -51,8 +51,8 @@ setup(
         'setuptools>=18.0',
         'cython',
     ],
-    ext_modules=[Extension('lambda_networking', sources=['src/udt4py.pyx'], language='c++', include_dirs=['../../udt'], libraries=['udt'])],
-    keywords=['udt', 'udt4', 'udt4py', 'aws', 'aws lambda'],
+    ext_modules=[Extension('udt4py', sources=['src/udt4py.pyx'], language='c++', include_dirs=['../../udt'], libraries=['udt'])],
+    keywords=['udt', 'udt4', 'udt4py'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

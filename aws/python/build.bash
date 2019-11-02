@@ -9,11 +9,13 @@
 # To clean up the artifacts from this script, see ./clean.bash
 
 # Ensure that udt4 itself has been built
+echo "Ensuring udt4 C++ library is built"
 pushd ../../udt/udt4
 make
 popd
 
 # Create a Python virtual environment
+echo "Setting up Python 3 virtual environment and staging ground"
 rm -rf venv
 mkdir venv
 python3 -m venv venv
@@ -25,13 +27,25 @@ pip install websockets
 pip install boto3
 
 # Cython build requires the C/C++ udt4 includes in order to compile
+echo "Compiling and packaging udt4py"
 export LD_LIBRARY_PATH=../../udt/udt4/src
 python setup.py build_ext --inplace
 
+# Package lambda_networking
+echo "Packaging lambda_networking"
+pushd python_packages
+python setup.py sdist bdist
+popd
+echo "Installing lambda_networking"
+pip install python_packages/
+
 # Minimal test to ensure build, install, and LD_LIBRARY_PATH all work
-python lambda_networking/__init__.py
+echo "Verifying lambda_networking package and built libraries all load"
+export LD_LIBRARY_PATH=../../udt/udt4/src
+python python_packages/lambda_networking/connect.py
 
 # Stage for publishing but don't actually publish in this script
+echo "Staging layer (see publish script for actual publishing commands)"
 rm -rf stage_layer
 export DIR=stage_layer/python/lib/python3.7/site-packages
 mkdir stage_layer && mkdir stage_layer/lib && mkdir stage_layer/python && mkdir stage_layer/python/lib && mkdir stage_layer/python/lib/python3.7 && mkdir $DIR
@@ -45,4 +59,8 @@ cp -r venv/lib/python3.7/site-packages/websockets $DIR
 rm -rf $DIR/websockets/__pycache__
 rm -f $DIR/websockets/*.c
 rm -rf $DIR/websockets/extensions/__pycache__
+cp -r venv/lib/python3.7/site-packages/lambda_networking $DIR
+rm -rf $DIR/lambda_networking/__pycache__
 cd stage_layer && zip -r layer.zip lib python
+
+echo "Layer build script completed"

@@ -1,6 +1,5 @@
-include lambda_networking/udt4py.pyx
-include lambda_networking/__INIT__.py
-exclude lambda_networking/udt4py.cpp
+include udt4py/udt4py.pyx
+exclude udt4py/udt4py.cpp
 include tests/*.py
 include LICENSE
 include README
