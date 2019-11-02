@@ -93,7 +93,7 @@ def pair(pairing_name:     str,
     usock.UDT_MSS = 9000
     usock.UDT_RENDEZVOUS = True
     usock.bind(('0.0.0.0', local_port))
-    print('Trying to connect to ' + remote_ip, flush=True)
+    #print('Trying to connect to ' + remote_ip, flush=True)
     usock.connect((remote_ip, remote_port))
     return usock
 
